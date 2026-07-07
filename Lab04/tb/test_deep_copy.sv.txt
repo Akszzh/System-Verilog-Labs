@@ -1,0 +1,97 @@
+module test_deep_copy;
+
+
+        // In class parity_calc_c
+
+        class parity_calc_c;
+
+                // Declare parity (bit type, size 8), initialize it with some random value
+                bit [7:0] parity=24;
+
+                // Write copy method that returns parity_calc_c class type
+                function parity_calc_c  copy();
+                        // Create copy instance
+                        copy = new();
+                        // Copy all the current properties into copy object
+                        copy.parity=this.parity;
+                endfunction : copy
+
+        endclass: parity_calc_c
+
+        // In class packet_c
+
+        class packet_c;
+
+                // Declare header (bit type , size 8), initialize it with some random value
+                bit [7:0] header=56;
+                // Declare data (bit type , size 8), initialize it with some random value
+                bit [7:0] data = 24;
+                // Declare and create an instance of parity_calc_c
+                parity_calc_c pa=new;
+
+                // Define copy method that returns packet_c class type
+                function packet_c copy();
+                        // Create copy instance
+                        copy=new;
+                        // Copy all the current class properties into copy object
+                        copy.header=this.header;
+                        copy.data=this.data;
+                        copy.pa=this.pa.copy();
+                endfunction : copy
+
+
+        endclass: packet_c
+
+        // Declare 2 handles pkt_h1 & pkt_h2 for packet_c class
+        packet_c pkt_h1,pkt_h2;
+
+        // Within initial
+                // Create pkt_h1 object
+                initial begin
+                // Use shallow copy method to copy pkt_h1 to pkt_h2
+                        pkt_h1=new;
+                        pkt_h2=new pkt_h1;
+                // Display the properties of parent class and sub class properties of pkt_h1 and pkt_h2
+                        $display("shallow copy\n");
+                        $display("the properties of parent class is %d %d %d\n",pkt_h1.header,pkt_h1.data,pkt_h1.pa.parity);
+                        $display("the property of sub class is %d %d %d\n",pkt_h2.header,pkt_h2.data,pkt_h2.pa.parity);
+                // Assign random value to the header of pkt_h2
+
+
+                        pkt_h2.header=100;
+                // Display the properties of parent class and sub-class properties of pkt_h1 and pkt_h2
+                // observe pkt_h1.header does not change
+
+                        $display("the properties of parent class is %d %d %d\n",pkt_h1.header,pkt_h1.data,pkt_h1.pa.parity);
+                        $display("the property of sub class is %d %d %d\n",pkt_h2.header,pkt_h2.data,pkt_h2.pa.parity);
+
+                // Change parity of pkt_h2 using subclass handle from the parent class packet_c
+                // Ex: pkt_h2.par.parity=19;
+
+                        pkt_h2.pa.parity=13;
+                // Display the properties of parent class and sub-class properties of pkt_h1 and pkt_h2
+                // observe that change reflected in pkt_h1 as the subclass handle in pkt_h1 and pkt_h2 are pointing to same subclass object
+                        $display("the properties of parent class is %d %d %d\n",pkt_h1.header,pkt_h1.data,pkt_h1.pa.parity);
+                        $display("the property of sub class is %d %d %d\n",pkt_h2.header,pkt_h2.data,pkt_h2.pa.parity);
+
+
+                // Perform deep copy by calling parent class copy method
+                // Ex: pkt_h2=pkt_h1.copy;
+                        $display("deep copy");
+                        pkt_h2=pkt_h1.copy();
+
+                // Display the properties of parent class and sub-class properties of pkt_h1 and pkt_h2
+                // observe the parent and subclass properties
+                        $display("the properties of parent class is %d %d %d\n",pkt_h1.header,pkt_h1.data,pkt_h1.pa.parity);
+                        $display("the property of sub class is %d %d %d\n",pkt_h2.header,pkt_h2.data,pkt_h2.pa.parity);
+
+                // Change parity of pkt_h2
+                // Ex: pkt_h2.par.parity=210;
+                        pkt_h2.pa.parity=333;
+                // Display the properties of parent class and sub-class properties of pkt_h1 and pkt_h2
+                // observe that parity doesnot change for pkt_h1 as they are two different subclass objects
+                        $display("the properties of parent class is %d %d %d\n",pkt_h1.header,pkt_h1.data,pkt_h1.pa.parity);
+                        $display("the property of sub class is %d %d %d\n",pkt_h2.header,pkt_h2.data,pkt_h2.pa.parity);
+
+                end
+endmodule
