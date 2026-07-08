@@ -1,0 +1,107 @@
+module test_mailbox;
+
+        // In class packet
+        class packet;
+
+                // Add the following rand fields
+
+                // addr (bit type , size 4)
+                rand bit [3:0] addr ;
+                // data (bit type , size 4)
+                rand bit [3:0] data ;
+
+                // In display function pass a string as an input argument
+                        // Display the input string message
+                        // Display the data and address
+                function void display(string str);
+                        $display(str);
+                        $display("the data is %d , the address is %d",data,addr);
+                endfunction
+                // In post_randomize method call display method
+                // and pass the string argument as "randomized data"
+                function void post_randomize();
+                        display("randomized data");
+                endfunction
+        endclass
+        // In class generator
+        class generator;
+                // Declare a handle of packet class
+                packet pkt;
+                        // Declare the mailbox parameterized by type class packet
+                        mailbox #(packet) mbx;
+                        // In constructor
+
+                                // Pass the mailbox parameterized by packet as an argument of the constructor
+                                // Assign the mailbox handle argument to the local mailbox handle of generator
+                                function  new(mailbox #(packet) mbx);
+                                        this.mbx = mbx;
+                                endfunction
+                // In task start, within fork - join_none,
+                task start;
+                        fork
+                // create 10 random packets
+
+                // Randomize each packet using assert & randomize method
+
+                // Put the generated random packets into the mailbox
+                                repeat(10) begin
+                                        pkt=new();
+                                        assert(pkt.randomize());
+                                        mbx.put(pkt);
+                                end
+                        join_none
+                endtask
+        endclass
+        // In class driver
+                class driver;
+                // Declare a handle of packet class
+                        packet pkt;
+                // Declare a mailbox parameterized by type class packet
+                        mailbox #(packet) mbx;
+                // In constructor
+                        function  new(mailbox #(packet) mbx);
+                        // Pass the mailbox parameterized by packet as an argument
+                                this.mbx=mbx;
+                        // Assign the mailbox handle argument to local mailbox handle of driver
+                        endfunction
+        // In task start, within fork - join_none,
+                task start;
+                // Get the 10 generated random packets from the mailbox
+                        repeat(10) begin
+                // Use display method in the packet class to display the received data
+                                mbx.get(pkt);
+                        end
+                endtask
+                endclass
+        // In class env
+        class env;
+                // Create the mailbox instance parameterized by packet
+                mailbox #(packet) mbx = new();
+                // Declare handles of generator and driver
+                generator gen;
+                driver dr;
+                // In build function
+                function void build();
+                        gen = new(mbx);
+                        dr = new(mbx);
+                endfunction
+                        // Create instance of generator and driver by passing mailbox as an input argument
+
+                // In task start
+                task start;
+                        // call start task of generator and driver
+                        gen.start();
+                        dr.start();
+                endtask
+        endclass
+        // Within initial block
+        initial
+                begin
+                // Create an instance of env
+                        env ev;
+                        ev = new();
+                // Call build and start task of env
+                        ev.build();
+                        ev.start();
+                end
+endmodule
